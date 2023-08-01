@@ -62,3 +62,8 @@ qt_add_resources(QtPropertyBrowser qtpropertybrowser
     PREFIX "/qt-project.org/qtpropertybrowser/"
     FILES ${RESOURCE_FILES}
 )
+
+install(TARGETS QtPropertyBrowser LIBRARY DESTINATION lib
+                                  ARCHIVE DESTINATION lib
+                                  RUNTIME DESTINATION bin
+                                  INCLUDES DESTINATION include)
