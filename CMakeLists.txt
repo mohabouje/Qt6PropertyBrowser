@@ -1,22 +1,23 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(QtPropertyBrowser VERSION 0.1.0)
+project(qtpropertybrowser VERSION 6.5.1)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(QTPPROPERTYBROWSER_BUILD_SHARED_LIBS "Build shared libraries" ON)
 
 find_package(Qt6 COMPONENTS Widgets REQUIRED)
 qt_standard_project_setup()
 
 set(HEADER_FILES
-    include/qtbuttonpropertybrowser.h
-    include/qteditorfactory.h
-    include/qtgroupboxpropertybrowser.h
-    include/qtpropertybrowser.h
-    include/qtpropertybrowserutils_p.h
-    include/qtpropertymanager.h
-    include/qttreepropertybrowser.h
-    include/qtvariantproperty.h
+    include/${PROJECT_NAME}/qtbuttonpropertybrowser.h
+    include/${PROJECT_NAME}/qteditorfactory.h
+    include/${PROJECT_NAME}/qtgroupboxpropertybrowser.h
+    include/${PROJECT_NAME}/${PROJECT_NAME}.h
+    include/${PROJECT_NAME}/${PROJECT_NAME}utils_p.h
+    include/${PROJECT_NAME}/qtpropertymanager.h
+    include/${PROJECT_NAME}/qttreepropertybrowser.h
+    include/${PROJECT_NAME}/qtvariantproperty.h
 )
 
 
@@ -24,8 +25,8 @@ set(SOURCE_FILES
     src/qtbuttonpropertybrowser.cpp 
     src/qteditorfactory.cpp
     src/qtgroupboxpropertybrowser.cpp 
-    src/qtpropertybrowser.cpp 
-    src/qtpropertybrowserutils.cpp 
+    src/${PROJECT_NAME}.cpp 
+    src/${PROJECT_NAME}utils.cpp 
     src/qtpropertymanager.cpp 
     src/qttreepropertybrowser.cpp 
     src/qtvariantproperty.cpp 
@@ -52,64 +53,67 @@ set(RESOURCE_FILES
     "images/cursor-whatsthis.png"
 )
 
+if (${QTPPROPERTYBROWSER_BUILD_SHARED_LIBS})
+    qt_add_library(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
+else()
+    qt_add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES} ${HEADER_FILES})
+endif()
 
-qt_add_library(QtPropertyBrowser  ${SOURCE_FILES} ${HEADER_FILES})
-target_link_libraries(QtPropertyBrowser PUBLIC Qt6::Widgets)
-target_include_directories(QtPropertyBrowser PUBLIC include)
+target_link_libraries(${PROJECT_NAME} PUBLIC Qt6::Widgets)
+target_include_directories(${PROJECT_NAME} PUBLIC include)
 
 
-qt_add_resources(QtPropertyBrowser qtpropertybrowser
-    PREFIX "/qt-project.org/qtpropertybrowser/"
+qt_add_resources(${PROJECT_NAME} ${PROJECT_NAME}
+    PREFIX "/qt-project.org/${PROJECT_NAME}/"
     FILES ${RESOURCE_FILES}
 )
 
-set_target_properties(QtPropertyBrowser PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
     AUTOMOC ON
     AUTORCC ON
     CXX_EXTENSIONS OFF
-    VERSION ${VERSION_SHORT}
-    EXPORT_NAME ${library_name}
+    EXPORT_NAME ${PROJECT_NAME}
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
 )
-set_target_properties(QtPropertyBrowser PROPERTIES
+set_target_properties(${PROJECT_NAME} PROPERTIES
     CXX_STANDARD 17
     CXX_STANDARD_REQUIRED ON)
 
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
-    "QtPropertyBrowserConfigVersion.cmake"
+    "${PROJECT_NAME}ConfigVersion.cmake"
     VERSION 6.5.1
     COMPATIBILITY SameMajorVersion
 )
 install(FILES ${HEADER_FILES}
-    DESTINATION include/
+    DESTINATION include/${PROJECT_NAME}
     COMPONENT headers
 )
 
-install(TARGETS QtPropertyBrowser
-    EXPORT QtPropertyBrowserTargets
+install(TARGETS ${PROJECT_NAME}
+    EXPORT ${PROJECT_NAME}Targets
     RUNTIME DESTINATION bin
     LIBRARY DESTINATION lib
     ARCHIVE DESTINATION lib
-    INCLUDES DESTINATION include
+    INCLUDES DESTINATION include/${PROJECT_NAME}
 )
 
-# install(EXPORT QtPropertyBrowserTargets
-#     FILE QtPropertyBrowserTargets.cmake
-#     NAMESPACE QtPropertyBrowserTargets::
-#     DESTINATION lib/cmake/QtPropertyBrowserTargets
+# install(EXPORT ${PROJECT_NAME}Targets
+#     FILE ${PROJECT_NAME}Targets.cmake
+#     NAMESPACE ${PROJECT_NAME}Targets::
+#     DESTINATION lib/cmake/${PROJECT_NAME}Targets
 # )
-# install(FILES QtPropertyBrowserTargetsConfig.cmake RENAME QtPropertyBrowserConfig.cmake
-#     DESTINATION lib/cmake/QtPropertyBrowserTargets
+# install(FILES ${PROJECT_NAME}TargetsConfig.cmake RENAME ${PROJECT_NAME}Config.cmake
+#     DESTINATION lib/cmake/${PROJECT_NAME}Targets
 # )
-# install(FILES "${CMAKE_CURRENT_BINARY_DIR}/QtPropertyBrowserConfigVersion.cmake"
-#     DESTINATION lib/cmake/QtPropertyBrowser
+# install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+#     DESTINATION lib/cmake/${PROJECT_NAME}
 # )
 
-target_include_directories(QtPropertyBrowser PUBLIC
+target_include_directories(${PROJECT_NAME} PUBLIC
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
