@@ -53,7 +53,7 @@ set(RESOURCE_FILES
 )
 
 
-qt_add_library(QtPropertyBrowser SHARED ${SOURCE_FILES} ${HEADER_FILES})
+qt_add_library(QtPropertyBrowser  ${SOURCE_FILES} ${HEADER_FILES})
 target_link_libraries(QtPropertyBrowser PUBLIC Qt6::Widgets)
 target_include_directories(QtPropertyBrowser PUBLIC include)
 
@@ -63,7 +63,54 @@ qt_add_resources(QtPropertyBrowser qtpropertybrowser
     FILES ${RESOURCE_FILES}
 )
 
-install(TARGETS QtPropertyBrowser LIBRARY DESTINATION lib
-                                  ARCHIVE DESTINATION lib
-                                  RUNTIME DESTINATION bin
-                                  INCLUDES DESTINATION include)
+set_target_properties(QtPropertyBrowser PROPERTIES
+    AUTOMOC ON
+    AUTORCC ON
+    CXX_EXTENSIONS OFF
+    VERSION ${VERSION_SHORT}
+    EXPORT_NAME ${library_name}
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+)
+set_target_properties(QtPropertyBrowser PROPERTIES
+    CXX_STANDARD 17
+    CXX_STANDARD_REQUIRED ON)
+
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    "QtPropertyBrowserConfigVersion.cmake"
+    VERSION 6.5.1
+    COMPATIBILITY SameMajorVersion
+)
+install(FILES ${HEADER_FILES}
+    DESTINATION include/
+    COMPONENT headers
+)
+
+install(TARGETS QtPropertyBrowser
+    EXPORT QtPropertyBrowserTargets
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib
+    INCLUDES DESTINATION include
+)
+
+# install(EXPORT QtPropertyBrowserTargets
+#     FILE QtPropertyBrowserTargets.cmake
+#     NAMESPACE QtPropertyBrowserTargets::
+#     DESTINATION lib/cmake/QtPropertyBrowserTargets
+# )
+# install(FILES QtPropertyBrowserTargetsConfig.cmake RENAME QtPropertyBrowserConfig.cmake
+#     DESTINATION lib/cmake/QtPropertyBrowserTargets
+# )
+# install(FILES "${CMAKE_CURRENT_BINARY_DIR}/QtPropertyBrowserConfigVersion.cmake"
+#     DESTINATION lib/cmake/QtPropertyBrowser
+# )
+
+target_include_directories(QtPropertyBrowser PUBLIC
+    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+)
+
