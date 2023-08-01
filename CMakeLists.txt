@@ -53,14 +53,16 @@ set(RESOURCE_FILES
     "images/cursor-whatsthis.png"
 )
 
-if (${QTPPROPERTYBROWSER_BUILD_SHARED_LIBS})
+set(VERSION_SHORT "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}")
+
+if (QTPPROPERTYBROWSER_BUILD_SHARED_LIBS)
     qt_add_library(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
 else()
     qt_add_library(${PROJECT_NAME} STATIC ${SOURCE_FILES} ${HEADER_FILES})
 endif()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC Qt6::Widgets)
-target_include_directories(${PROJECT_NAME} PUBLIC include)
+target_include_directories(${PROJECT_NAME} PRIVATE include)
 
 
 qt_add_resources(${PROJECT_NAME} ${PROJECT_NAME}
@@ -73,6 +75,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
     AUTORCC ON
     CXX_EXTENSIONS OFF
     EXPORT_NAME ${PROJECT_NAME}
+    VERSION ${VERSION_SHORT}
     ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
     RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
@@ -85,7 +88,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(
     "${PROJECT_NAME}ConfigVersion.cmake"
-    VERSION 6.5.1
+    VERSION ${VERSION_SHORT}
     COMPATIBILITY SameMajorVersion
 )
 install(FILES ${HEADER_FILES}
@@ -101,20 +104,21 @@ install(TARGETS ${PROJECT_NAME}
     INCLUDES DESTINATION include/${PROJECT_NAME}
 )
 
-# install(EXPORT ${PROJECT_NAME}Targets
-#     FILE ${PROJECT_NAME}Targets.cmake
-#     NAMESPACE ${PROJECT_NAME}Targets::
-#     DESTINATION lib/cmake/${PROJECT_NAME}Targets
-# )
-# install(FILES ${PROJECT_NAME}TargetsConfig.cmake RENAME ${PROJECT_NAME}Config.cmake
-#     DESTINATION lib/cmake/${PROJECT_NAME}Targets
-# )
-# install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
-#     DESTINATION lib/cmake/${PROJECT_NAME}
-# )
+install(EXPORT ${PROJECT_NAME}Targets
+    FILE ${PROJECT_NAME}Targets.cmake
+    NAMESPACE ${PROJECT_NAME}::
+    DESTINATION lib/cmake/${PROJECT_NAME}
+)
+
+install(FILES ${PROJECT_NAME}Config.cmake RENAME ${PROJECT_NAME}Config.cmake
+    DESTINATION lib/cmake/${PROJECT_NAME}
+)
+
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake"
+    DESTINATION lib/cmake/${PROJECT_NAME}
+)
 
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
-
