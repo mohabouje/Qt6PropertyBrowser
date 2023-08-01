@@ -53,7 +53,7 @@ set(RESOURCE_FILES
 )
 
 
-qt_add_library(QtPropertyBrowser STATIC ${SOURCE_FILES} ${HEADER_FILES})
+qt_add_library(QtPropertyBrowser SHARED ${SOURCE_FILES} ${HEADER_FILES})
 target_link_libraries(QtPropertyBrowser PUBLIC Qt6::Widgets)
 target_include_directories(QtPropertyBrowser PUBLIC include)
 
