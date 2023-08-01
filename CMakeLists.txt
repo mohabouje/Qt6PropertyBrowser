@@ -9,26 +9,26 @@ find_package(Qt6 COMPONENTS Widgets REQUIRED)
 qt_standard_project_setup()
 
 set(HEADER_FILES
-    qtbuttonpropertybrowser.h
-    qteditorfactory.h
-    qtgroupboxpropertybrowser.h
-    qtpropertybrowser.h
-    qtpropertybrowserutils_p.h
-    qtpropertymanager.h
-    qttreepropertybrowser.h
-    qtvariantproperty.h
+    include/qtbuttonpropertybrowser.h
+    include/qteditorfactory.h
+    include/qtgroupboxpropertybrowser.h
+    include/qtpropertybrowser.h
+    include/qtpropertybrowserutils_p.h
+    include/qtpropertymanager.h
+    include/qttreepropertybrowser.h
+    include/qtvariantproperty.h
 )
 
 
 set(SOURCE_FILES
-    qtbuttonpropertybrowser.cpp 
-    qteditorfactory.cpp
-    qtgroupboxpropertybrowser.cpp 
-    qtpropertybrowser.cpp 
-    qtpropertybrowserutils.cpp 
-    qtpropertymanager.cpp 
-    qttreepropertybrowser.cpp 
-    qtvariantproperty.cpp 
+    src/qtbuttonpropertybrowser.cpp 
+    src/qteditorfactory.cpp
+    src/qtgroupboxpropertybrowser.cpp 
+    src/qtpropertybrowser.cpp 
+    src/qtpropertybrowserutils.cpp 
+    src/qtpropertymanager.cpp 
+    src/qttreepropertybrowser.cpp 
+    src/qtvariantproperty.cpp 
 )
 
 set(RESOURCE_FILES
@@ -54,7 +54,8 @@ set(RESOURCE_FILES
 
 
 qt_add_library(QtPropertyBrowser STATIC ${SOURCE_FILES} ${HEADER_FILES})
-target_link_libraries(QtPropertyBrowser PRIVATE Qt6::Widgets)
+target_link_libraries(QtPropertyBrowser PUBLIC Qt6::Widgets)
+target_include_directories(QtPropertyBrowser PUBLIC include)
 
 
 qt_add_resources(QtPropertyBrowser qtpropertybrowser
