@@ -1,8 +1,8 @@
 // Copyright (C) 2016 The Qt Company Ltd.
 // SPDX-License-Identifier: LicenseRef-Qt-Commercial OR LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only
 
-#include "qtpropertybrowser/qteditorfactory.h"
-#include "qtpropertybrowser/qtpropertybrowserutils_p.h"
+#include "qt6propertybrowser/qteditorfactory.h"
+#include "qt6propertybrowser/qtpropertybrowserutils_p.h"
 
 #include <QtCore/QMap>
 #include <QtCore/QRegularExpression>
@@ -2503,5 +2503,5 @@ void QtFontEditorFactory::disconnectPropertyManager(QtFontPropertyManager *manag
 
 QT_END_NAMESPACE
 
-#include "qtpropertybrowser/moc_qteditorfactory.cpp"
+#include "qt6propertybrowser/moc_qteditorfactory.cpp"
 #include "qteditorfactory.moc"

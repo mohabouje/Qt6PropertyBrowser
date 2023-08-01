@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(qtpropertybrowser VERSION 6.5.1)
+project(qt6propertybrowser VERSION 6.5.1)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(QTPPROPERTYBROWSER_BUILD_SHARED_LIBS "Build shared libraries" ON)
+option(QTPPROPERTYBROWSER_BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 find_package(Qt6 COMPONENTS Widgets REQUIRED)
 qt_standard_project_setup()
@@ -13,8 +13,8 @@ set(HEADER_FILES
     include/${PROJECT_NAME}/qtbuttonpropertybrowser.h
     include/${PROJECT_NAME}/qteditorfactory.h
     include/${PROJECT_NAME}/qtgroupboxpropertybrowser.h
-    include/${PROJECT_NAME}/${PROJECT_NAME}.h
-    include/${PROJECT_NAME}/${PROJECT_NAME}utils_p.h
+    include/${PROJECT_NAME}/qtpropertybrowser.h
+    include/${PROJECT_NAME}/qtpropertybrowserutils_p.h
     include/${PROJECT_NAME}/qtpropertymanager.h
     include/${PROJECT_NAME}/qttreepropertybrowser.h
     include/${PROJECT_NAME}/qtvariantproperty.h
@@ -25,8 +25,8 @@ set(SOURCE_FILES
     src/qtbuttonpropertybrowser.cpp 
     src/qteditorfactory.cpp
     src/qtgroupboxpropertybrowser.cpp 
-    src/${PROJECT_NAME}.cpp 
-    src/${PROJECT_NAME}utils.cpp 
+    src/qtpropertybrowser.cpp 
+    src/qtpropertybrowserutils.cpp 
     src/qtpropertymanager.cpp 
     src/qttreepropertybrowser.cpp 
     src/qtvariantproperty.cpp 
