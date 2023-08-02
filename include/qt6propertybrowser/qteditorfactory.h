@@ -295,23 +295,23 @@ private:
     Q_DISABLE_COPY_MOVE(QtFontEditorFactory)
 };
 
-class QtGroupEditorFactoryPrivate;
+class QtLabelEditorFactoryPrivate;
 
-class QtGroupEditorFactory : public QtAbstractEditorFactory<QtGroupPropertyManager>
+class QtLabelEditorFactory : public QtAbstractEditorFactory<QtStringPropertyManager>
 {
     Q_OBJECT
 public:
-    QtGroupEditorFactory(QObject *parent = 0);
-    ~QtGroupEditorFactory();
+    QtLabelEditorFactory(QObject *parent = 0);
+    ~QtLabelEditorFactory();
 protected:
-    void connectPropertyManager(QtGroupPropertyManager *manager) override;
-    QWidget *createEditor(QtGroupPropertyManager *manager, QtProperty *property,
+    void connectPropertyManager(QtStringPropertyManager *manager) override;
+    QWidget *createEditor(QtStringPropertyManager *manager, QtProperty *property,
                 QWidget *parent) override;
-    void disconnectPropertyManager(QtGroupPropertyManager *manager) override;
+    void disconnectPropertyManager(QtStringPropertyManager *manager) override;
 private:
-    QScopedPointer<QtGroupEditorFactoryPrivate> d_ptr;
-    Q_DECLARE_PRIVATE(QtGroupEditorFactory)
-    Q_DISABLE_COPY_MOVE(QtGroupEditorFactory)
+    QScopedPointer<QtLabelEditorFactoryPrivate> d_ptr;
+    Q_DECLARE_PRIVATE(QtLabelEditorFactory)
+    Q_DISABLE_COPY_MOVE(QtLabelEditorFactory)
 };
 
 QT_END_NAMESPACE

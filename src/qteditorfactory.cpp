@@ -2502,170 +2502,101 @@ void QtFontEditorFactory::disconnectPropertyManager(QtFontPropertyManager *manag
 }
 
 
-// QtGroupEditWidget
+// QtLabelEditWidget
 
-class QtGroupEditWidget : public QWidget {
+class QtLabelEditWidget : public QWidget {
     Q_OBJECT
 
 public:
-    QtGroupEditWidget(QWidget *parent);
-
-    bool eventFilter(QObject *obj, QEvent *ev) override;
+    QtLabelEditWidget(QWidget *parent);
 
 public Q_SLOTS:
-    void setValue(const QFont &value);
+    void setValue(const QString &value);
 
-private Q_SLOTS:
-    void buttonClicked();
 
 Q_SIGNALS:
-    void valueChanged(const QFont &value);
+    void valueChanged(const QString &value);
 
 private:
-    QFont m_font;
-    QLabel *m_pixmapLabel;
     QLabel *m_label;
-    QToolButton *m_button;
 };
 
-QtGroupEditWidget::QtGroupEditWidget(QWidget *parent) :
+QtLabelEditWidget::QtLabelEditWidget(QWidget *parent) :
     QWidget(parent),
-    m_pixmapLabel(new QLabel),
-    m_label(new QLabel),
-    m_button(new QToolButton)
+    m_label(new QLabel)
 {
     QHBoxLayout *lt = new QHBoxLayout(this);
     setupTreeViewEditorMargin(lt);
     lt->setSpacing(0);
-    lt->addWidget(m_pixmapLabel);
     lt->addWidget(m_label);
     lt->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Ignored));
 
-    m_button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Ignored);
-    m_button->setFixedWidth(20);
-    setFocusProxy(m_button);
-    setFocusPolicy(m_button->focusPolicy());
-    m_button->setText(tr("..."));
-    m_button->installEventFilter(this);
-    connect(m_button, &QAbstractButton::clicked, this, &QtGroupEditWidget::buttonClicked);
-    lt->addWidget(m_button);
-    m_pixmapLabel->setPixmap(QtPropertyBrowserUtils::fontValuePixmap(m_font));
-    m_label->setText(QtPropertyBrowserUtils::fontValueText(m_font));
+    setFocusProxy(m_label);
+    m_label->setText("Aa");
 }
 
-void QtGroupEditWidget::setValue(const QFont &f)
+void QtLabelEditWidget::setValue(const QString &string)
 {
-    if (m_font != f) {
-        m_font = f;
-        m_pixmapLabel->setPixmap(QtPropertyBrowserUtils::fontValuePixmap(f));
-        m_label->setText(QtPropertyBrowserUtils::fontValueText(f));
-    }
+    m_label->setText(string);
 }
 
-void QtGroupEditWidget::buttonClicked()
-{
-    bool ok = false;
-    QFont newFont = QFontDialog::getFont(&ok, m_font, this, tr("Select Font"));
-    if (ok && newFont != m_font) {
-        QFont f = m_font;
-        // prevent mask for unchanged attributes, don't change other attributes (like kerning, etc...)
-        if (m_font.family() != newFont.family())
-            f.setFamily(newFont.family());
-        if (m_font.pointSize() != newFont.pointSize())
-            f.setPointSize(newFont.pointSize());
-        if (m_font.bold() != newFont.bold())
-            f.setBold(newFont.bold());
-        if (m_font.italic() != newFont.italic())
-            f.setItalic(newFont.italic());
-        if (m_font.underline() != newFont.underline())
-            f.setUnderline(newFont.underline());
-        if (m_font.strikeOut() != newFont.strikeOut())
-            f.setStrikeOut(newFont.strikeOut());
-        setValue(f);
-        emit valueChanged(m_font);
-    }
-}
 
-bool QtGroupEditWidget::eventFilter(QObject *obj, QEvent *ev)
-{
-    if (obj == m_button) {
-        switch (ev->type()) {
-        case QEvent::KeyPress:
-        case QEvent::KeyRelease: { // Prevent the QToolButton from handling Enter/Escape meant control the delegate
-            switch (static_cast<const QKeyEvent*>(ev)->key()) {
-            case Qt::Key_Escape:
-            case Qt::Key_Enter:
-            case Qt::Key_Return:
-                ev->ignore();
-                return true;
-            default:
-                break;
-            }
-        }
-            break;
-        default:
-            break;
-        }
-    }
-    return QWidget::eventFilter(obj, ev);
-}
+// QtLabelEditorFactoryPrivate
 
-// QtGroupEditorFactoryPrivate
-
-class QtGroupEditorFactoryPrivate : public EditorFactoryPrivate<QtGroupEditWidget>
+class QtLabelEditorFactoryPrivate : public EditorFactoryPrivate<QtLabelEditWidget>
 {
-    QtGroupEditorFactory *q_ptr;
-    Q_DECLARE_PUBLIC(QtGroupEditorFactory)
+    QtLabelEditorFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtLabelEditorFactory)
 public:
 
-    void slotPropertyChanged(QtProperty *property, const QFont &value);
-    void slotSetValue(const QFont &value);
+    void slotPropertyChanged(QtProperty *property, const QString &value);
+    void slotSetValue(const QString &value);
 };
 
-void QtGroupEditorFactoryPrivate::slotPropertyChanged(QtProperty *property,
-                const QFont &value)
+void QtLabelEditorFactoryPrivate::slotPropertyChanged(QtProperty *property,
+                const QString &value)
 {
     const PropertyToEditorListMap::const_iterator it = m_createdEditors.constFind(property);
     if (it == m_createdEditors.constEnd())
         return;
 
-    for (QtGroupEditWidget *e : it.value())
+    for (QtLabelEditWidget *e : it.value())
         e->setValue(value);
 }
 
-void QtGroupEditorFactoryPrivate::slotSetValue(const QFont &value)
+void QtLabelEditorFactoryPrivate::slotSetValue(const QString &value)
 {
-    // QObject *object = q_ptr->sender();
-    // const EditorToPropertyMap::ConstIterator ecend = m_editorToProperty.constEnd();
-    // for (EditorToPropertyMap::ConstIterator itEditor = m_editorToProperty.constBegin(); itEditor != ecend; ++itEditor)
-    //     if (itEditor.key() == object) {
-    //         QtProperty *property = itEditor.value();
-    //         QtGroupPropertyManager *manager = q_ptr->propertyManager(property);
-    //         if (!manager)
-    //             return;
-    //         // manager->setValue(property, value);
-    //         return;
-    //     }
+    QObject *object = q_ptr->sender();
+    const EditorToPropertyMap::ConstIterator ecend = m_editorToProperty.constEnd();
+    for (EditorToPropertyMap::ConstIterator itEditor = m_editorToProperty.constBegin(); itEditor != ecend; ++itEditor)
+        if (itEditor.key() == object) {
+            QtProperty *property = itEditor.value();
+            QtStringPropertyManager *manager = q_ptr->propertyManager(property);
+            if (!manager)
+                return;
+            manager->setValue(property, value);
+            return;
+        }
 }
 
 /*!
-    \class QtGroupEditorFactory
+    \class QtLabelEditorFactory
     \internal
     \inmodule QtDesigner
     \since 4.4
 
-    \brief The QtGroupEditorFactory class provides font editing for
-    properties created by QtGroupPropertyManager objects.
+    \brief The QtLabelEditorFactory class provides font editing for
+    properties created by QtStringPropertyManager objects.
 
-    \sa QtAbstractEditorFactory, QtGroupPropertyManager
+    \sa QtAbstractEditorFactory, QtStringPropertyManager
 */
 
 /*!
     Creates a factory with the given \a parent.
 */
-QtGroupEditorFactory::QtGroupEditorFactory(QObject *parent) :
-    QtAbstractEditorFactory<QtGroupPropertyManager>(parent),
-    d_ptr(new QtGroupEditorFactoryPrivate())
+QtLabelEditorFactory::QtLabelEditorFactory(QObject *parent) :
+    QtAbstractEditorFactory<QtStringPropertyManager>(parent),
+    d_ptr(new QtLabelEditorFactoryPrivate())
 {
     d_ptr->q_ptr = this;
 }
@@ -2673,7 +2604,7 @@ QtGroupEditorFactory::QtGroupEditorFactory(QObject *parent) :
 /*!
     Destroys this factory, and all the widgets it has created.
 */
-QtGroupEditorFactory::~QtGroupEditorFactory()
+QtLabelEditorFactory::~QtLabelEditorFactory()
 {
     qDeleteAll(d_ptr->m_editorToProperty.keys());
 }
@@ -2683,11 +2614,11 @@ QtGroupEditorFactory::~QtGroupEditorFactory()
 
     Reimplemented from the QtAbstractEditorFactory class.
 */
-void QtGroupEditorFactory::connectPropertyManager(QtGroupPropertyManager *manager)
+void QtLabelEditorFactory::connectPropertyManager(QtStringPropertyManager *manager)
 {
-    // connect(manager, &QtGroupPropertyManager::valueChanged,
-    //         this, [this](QtProperty *property, const QFont &value)
-    //         { d_ptr->slotPropertyChanged(property, value); });
+    connect(manager, &QtStringPropertyManager::valueChanged,
+            this, [this](QtProperty *property, const QString &value)
+            { d_ptr->slotPropertyChanged(property, value); });
 }
 
 /*!
@@ -2695,15 +2626,15 @@ void QtGroupEditorFactory::connectPropertyManager(QtGroupPropertyManager *manage
 
     Reimplemented from the QtAbstractEditorFactory class.
 */
-QWidget *QtGroupEditorFactory::createEditor(QtGroupPropertyManager *manager,
+QWidget *QtLabelEditorFactory::createEditor(QtStringPropertyManager *manager,
         QtProperty *property, QWidget *parent)
 {
-    QtGroupEditWidget *editor = d_ptr->createEditor(property, parent);
-    // editor->setValue(manager->value(property));
-    // connect(editor, &QtGroupEditWidget::valueChanged,
-    //         this, [this](const QFont &value) { d_ptr->slotSetValue(value); });
-    // connect(editor, &QObject::destroyed,
-    //         this, [this](QObject *object) { d_ptr->slotEditorDestroyed(object); });
+    QtLabelEditWidget *editor = d_ptr->createEditor(property, parent);
+    editor->setValue(manager->value(property));
+    connect(editor, &QtLabelEditWidget::valueChanged,
+            this, [this](const QString &value) { d_ptr->slotSetValue(value); });
+    connect(editor, &QObject::destroyed,
+            this, [this](QObject *object) { d_ptr->slotEditorDestroyed(object); });
     return editor;
 }
 
@@ -2712,9 +2643,9 @@ QWidget *QtGroupEditorFactory::createEditor(QtGroupPropertyManager *manager,
 
     Reimplemented from the QtAbstractEditorFactory class.
 */
-void QtGroupEditorFactory::disconnectPropertyManager(QtGroupPropertyManager *manager)
+void QtLabelEditorFactory::disconnectPropertyManager(QtStringPropertyManager *manager)
 {
-    // disconnect(manager, &QtGroupPropertyManager::valueChanged, this, nullptr);
+    disconnect(manager, &QtStringPropertyManager::valueChanged, this, nullptr);
 }
 
 
