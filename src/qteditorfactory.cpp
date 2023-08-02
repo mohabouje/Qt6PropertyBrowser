@@ -2501,6 +2501,224 @@ void QtFontEditorFactory::disconnectPropertyManager(QtFontPropertyManager *manag
     disconnect(manager, &QtFontPropertyManager::valueChanged, this, nullptr);
 }
 
+
+// QtGroupEditWidget
+
+class QtGroupEditWidget : public QWidget {
+    Q_OBJECT
+
+public:
+    QtGroupEditWidget(QWidget *parent);
+
+    bool eventFilter(QObject *obj, QEvent *ev) override;
+
+public Q_SLOTS:
+    void setValue(const QFont &value);
+
+private Q_SLOTS:
+    void buttonClicked();
+
+Q_SIGNALS:
+    void valueChanged(const QFont &value);
+
+private:
+    QFont m_font;
+    QLabel *m_pixmapLabel;
+    QLabel *m_label;
+    QToolButton *m_button;
+};
+
+QtGroupEditWidget::QtGroupEditWidget(QWidget *parent) :
+    QWidget(parent),
+    m_pixmapLabel(new QLabel),
+    m_label(new QLabel),
+    m_button(new QToolButton)
+{
+    QHBoxLayout *lt = new QHBoxLayout(this);
+    setupTreeViewEditorMargin(lt);
+    lt->setSpacing(0);
+    lt->addWidget(m_pixmapLabel);
+    lt->addWidget(m_label);
+    lt->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Ignored));
+
+    m_button->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Ignored);
+    m_button->setFixedWidth(20);
+    setFocusProxy(m_button);
+    setFocusPolicy(m_button->focusPolicy());
+    m_button->setText(tr("..."));
+    m_button->installEventFilter(this);
+    connect(m_button, &QAbstractButton::clicked, this, &QtGroupEditWidget::buttonClicked);
+    lt->addWidget(m_button);
+    m_pixmapLabel->setPixmap(QtPropertyBrowserUtils::fontValuePixmap(m_font));
+    m_label->setText(QtPropertyBrowserUtils::fontValueText(m_font));
+}
+
+void QtGroupEditWidget::setValue(const QFont &f)
+{
+    if (m_font != f) {
+        m_font = f;
+        m_pixmapLabel->setPixmap(QtPropertyBrowserUtils::fontValuePixmap(f));
+        m_label->setText(QtPropertyBrowserUtils::fontValueText(f));
+    }
+}
+
+void QtGroupEditWidget::buttonClicked()
+{
+    bool ok = false;
+    QFont newFont = QFontDialog::getFont(&ok, m_font, this, tr("Select Font"));
+    if (ok && newFont != m_font) {
+        QFont f = m_font;
+        // prevent mask for unchanged attributes, don't change other attributes (like kerning, etc...)
+        if (m_font.family() != newFont.family())
+            f.setFamily(newFont.family());
+        if (m_font.pointSize() != newFont.pointSize())
+            f.setPointSize(newFont.pointSize());
+        if (m_font.bold() != newFont.bold())
+            f.setBold(newFont.bold());
+        if (m_font.italic() != newFont.italic())
+            f.setItalic(newFont.italic());
+        if (m_font.underline() != newFont.underline())
+            f.setUnderline(newFont.underline());
+        if (m_font.strikeOut() != newFont.strikeOut())
+            f.setStrikeOut(newFont.strikeOut());
+        setValue(f);
+        emit valueChanged(m_font);
+    }
+}
+
+bool QtGroupEditWidget::eventFilter(QObject *obj, QEvent *ev)
+{
+    if (obj == m_button) {
+        switch (ev->type()) {
+        case QEvent::KeyPress:
+        case QEvent::KeyRelease: { // Prevent the QToolButton from handling Enter/Escape meant control the delegate
+            switch (static_cast<const QKeyEvent*>(ev)->key()) {
+            case Qt::Key_Escape:
+            case Qt::Key_Enter:
+            case Qt::Key_Return:
+                ev->ignore();
+                return true;
+            default:
+                break;
+            }
+        }
+            break;
+        default:
+            break;
+        }
+    }
+    return QWidget::eventFilter(obj, ev);
+}
+
+// QtGroupEditorFactoryPrivate
+
+class QtGroupEditorFactoryPrivate : public EditorFactoryPrivate<QtGroupEditWidget>
+{
+    QtGroupEditorFactory *q_ptr;
+    Q_DECLARE_PUBLIC(QtGroupEditorFactory)
+public:
+
+    void slotPropertyChanged(QtProperty *property, const QFont &value);
+    void slotSetValue(const QFont &value);
+};
+
+void QtGroupEditorFactoryPrivate::slotPropertyChanged(QtProperty *property,
+                const QFont &value)
+{
+    const PropertyToEditorListMap::const_iterator it = m_createdEditors.constFind(property);
+    if (it == m_createdEditors.constEnd())
+        return;
+
+    for (QtGroupEditWidget *e : it.value())
+        e->setValue(value);
+}
+
+void QtGroupEditorFactoryPrivate::slotSetValue(const QFont &value)
+{
+    // QObject *object = q_ptr->sender();
+    // const EditorToPropertyMap::ConstIterator ecend = m_editorToProperty.constEnd();
+    // for (EditorToPropertyMap::ConstIterator itEditor = m_editorToProperty.constBegin(); itEditor != ecend; ++itEditor)
+    //     if (itEditor.key() == object) {
+    //         QtProperty *property = itEditor.value();
+    //         QtGroupPropertyManager *manager = q_ptr->propertyManager(property);
+    //         if (!manager)
+    //             return;
+    //         // manager->setValue(property, value);
+    //         return;
+    //     }
+}
+
+/*!
+    \class QtGroupEditorFactory
+    \internal
+    \inmodule QtDesigner
+    \since 4.4
+
+    \brief The QtGroupEditorFactory class provides font editing for
+    properties created by QtGroupPropertyManager objects.
+
+    \sa QtAbstractEditorFactory, QtGroupPropertyManager
+*/
+
+/*!
+    Creates a factory with the given \a parent.
+*/
+QtGroupEditorFactory::QtGroupEditorFactory(QObject *parent) :
+    QtAbstractEditorFactory<QtGroupPropertyManager>(parent),
+    d_ptr(new QtGroupEditorFactoryPrivate())
+{
+    d_ptr->q_ptr = this;
+}
+
+/*!
+    Destroys this factory, and all the widgets it has created.
+*/
+QtGroupEditorFactory::~QtGroupEditorFactory()
+{
+    qDeleteAll(d_ptr->m_editorToProperty.keys());
+}
+
+/*!
+    \internal
+
+    Reimplemented from the QtAbstractEditorFactory class.
+*/
+void QtGroupEditorFactory::connectPropertyManager(QtGroupPropertyManager *manager)
+{
+    // connect(manager, &QtGroupPropertyManager::valueChanged,
+    //         this, [this](QtProperty *property, const QFont &value)
+    //         { d_ptr->slotPropertyChanged(property, value); });
+}
+
+/*!
+    \internal
+
+    Reimplemented from the QtAbstractEditorFactory class.
+*/
+QWidget *QtGroupEditorFactory::createEditor(QtGroupPropertyManager *manager,
+        QtProperty *property, QWidget *parent)
+{
+    QtGroupEditWidget *editor = d_ptr->createEditor(property, parent);
+    // editor->setValue(manager->value(property));
+    // connect(editor, &QtGroupEditWidget::valueChanged,
+    //         this, [this](const QFont &value) { d_ptr->slotSetValue(value); });
+    // connect(editor, &QObject::destroyed,
+    //         this, [this](QObject *object) { d_ptr->slotEditorDestroyed(object); });
+    return editor;
+}
+
+/*!
+    \internal
+
+    Reimplemented from the QtAbstractEditorFactory class.
+*/
+void QtGroupEditorFactory::disconnectPropertyManager(QtGroupPropertyManager *manager)
+{
+    // disconnect(manager, &QtGroupPropertyManager::valueChanged, this, nullptr);
+}
+
+
+
 QT_END_NAMESPACE
 
 #include "qt6propertybrowser/moc_qteditorfactory.cpp"
