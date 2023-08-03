@@ -37,6 +37,14 @@ struct DecoratedEditor : public Editor {
     template <typename... ArgsT>
     explicit DecoratedEditor(ArgsT&&... args) : Editor(std::forward<ArgsT>(args)...) {}
 
+    void keyPressEvent(QKeyEvent *event) override {
+        if (m_readOnly) {
+            event->ignore();
+            return;
+        }
+        Editor::keyPressEvent(event);
+    }
+    
     bool isReadOnly() const { return m_readOnly; }
     
     void setReadOnly(bool readOnly) {
@@ -90,7 +98,6 @@ template <class Editor>
 Editor *EditorFactoryPrivate<Editor>::createEditor(QtProperty *property, QWidget *parent)
 {
     DecoratedEditor<Editor> *editor = new DecoratedEditor<Editor>(parent);
-    editor->setReadOnly(property->isReadOnly());
     initializeEditor(property, editor);
     return editor;
 }
