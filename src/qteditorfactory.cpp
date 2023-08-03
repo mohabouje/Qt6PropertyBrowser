@@ -45,25 +45,28 @@ protected:
 };
 
 class OverlayFactoryFilter : public QObject {
-    QPointer<Overlay> m_overlay;
 public:
     explicit OverlayFactoryFilter(QObject *parent = nullptr) : QObject(parent) {}
+
+    void setReadOnly(bool readOnly) { m_readOnly = readOnly; }
+    
 protected:
     bool eventFilter(QObject *obj, QEvent *ev) override {
         if (!obj->isWidgetType()) return false;
-        auto w = static_cast<QWidget*>(obj);
-        if (ev->type() == QEvent::MouseButtonPress) {
-            if (!m_overlay) m_overlay = new Overlay;
-            m_overlay->setParent(w);
-            m_overlay->resize(w->size());
-            m_overlay->show();
-        }
-        else if (ev->type() == QEvent::Resize) {
-            if (m_overlay && m_overlay->parentWidget() == w)
-                m_overlay->resize(w->size());
+        if (ev->type() == QEvent::MouseButtonPress or
+            ev->type() == QEvent::MouseButtonDblClick or
+            ev->type() == QEvent::MouseButtonRelease or
+            ev->type() == QEvent::MouseMove or
+            ev->type() == QEvent::KeyPress or
+            ev->type() == QEvent::KeyRelease or
+            ev->type() == QEvent::Wheel) {
+            return m_readOnly;
         }
         return false;
     }
+
+private:
+    bool m_readOnly{false};
 };
 
 
@@ -104,14 +107,16 @@ template <class Editor>
 Editor *EditorFactoryPrivate<Editor>::createEditor(QtProperty *property, QWidget *parent)
 {
     Editor *editor = new Editor(parent);
-    editor->installEventFilter(&m_factory);
     initializeEditor(property, editor);
     return editor;
 }
 
 template <class Editor>
-void EditorFactoryPrivate<Editor>::initializeEditor(QtProperty *property, Editor *editor)
-{
+void EditorFactoryPrivate<Editor>::initializeEditor(QtProperty *property,
+                                                    Editor *editor) {
+    OverlayFactoryFilter *filter = new OverlayFactoryFilter(editor);
+    filter->setReadOnly(property->isReadOnly());
+    editor->installEventFilter(filter);
     typename PropertyToEditorListMap::iterator it = m_createdEditors.find(property);
     if (it == m_createdEditors.end())
         it = m_createdEditors.insert(property, EditorList());
