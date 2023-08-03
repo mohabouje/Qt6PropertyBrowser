@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(QTPPROPERTYBROWSER_BUILD_SHARED_LIBS "Build shared libraries" OFF)
+option(QTPPROPERTYBROWSER_BUILD_EXAMPLES "Build the examples" ON)
 
 find_package(Qt6 COMPONENTS Widgets REQUIRED)
 qt_standard_project_setup()
@@ -63,6 +64,7 @@ endif()
 
 target_link_libraries(${PROJECT_NAME} PUBLIC Qt6::Widgets)
 target_include_directories(${PROJECT_NAME} PRIVATE include)
+include_directories(include)
 
 
 qt_add_resources(${PROJECT_NAME} ${PROJECT_NAME}
@@ -122,3 +124,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
     $<INSTALL_INTERFACE:include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 )
+
+# if (QTPPROPERTYBROWSER_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+# endif()

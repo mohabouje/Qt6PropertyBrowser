@@ -31,37 +31,6 @@
 
 QT_BEGIN_NAMESPACE
 
-template <class Editor>
-struct DecoratedEditor : public Editor {
-
-    template <typename... ArgsT>
-    explicit DecoratedEditor(ArgsT&&... args) : Editor(std::forward<ArgsT>(args)...) {}
-
-    void keyPressEvent(QKeyEvent *event) override {
-        if (m_readOnly) {
-            event->ignore();
-            return;
-        }
-        Editor::keyPressEvent(event);
-    }
-    
-    bool isReadOnly() const { return m_readOnly; }
-    
-    void setReadOnly(bool readOnly) {
-        if (m_readOnly == readOnly)
-            return;
-      
-        Editor::setAttribute(Qt::WA_TransparentForMouseEvents, readOnly);
-        Editor::setAttribute(Qt::WA_NoMouseReplay, readOnly);
-        Editor::setAttribute(Qt::WA_NoMouseReplay, readOnly);
-        Editor::setAttribute(Qt::WA_NoChildEventsForParent, readOnly);
-        Editor::setFocusPolicy(readOnly ? Qt::FocusPolicy::NoFocus : Qt::FocusPolicy::StrongFocus);
-    }
-
-  private:
-    bool m_readOnly{false};
-};
-
 // Set a hard coded left margin to account for the indentation
 // of the tree view icon when switching to an editor
 
@@ -82,12 +51,12 @@ class EditorFactoryPrivate
 {
 public:
 
-    typedef QList<DecoratedEditor<Editor> *> EditorList;
+    typedef QList<Editor *> EditorList;
     typedef QMap<QtProperty *, EditorList> PropertyToEditorListMap;
     typedef QMap<Editor *, QtProperty *> EditorToPropertyMap;
 
     Editor *createEditor(QtProperty *property, QWidget *parent);
-    void initializeEditor(QtProperty *property, DecoratedEditor<Editor> *e);
+    void initializeEditor(QtProperty *property,Editor *e);
     void slotEditorDestroyed(QObject *object);
 
     PropertyToEditorListMap  m_createdEditors;
@@ -97,14 +66,14 @@ public:
 template <class Editor>
 Editor *EditorFactoryPrivate<Editor>::createEditor(QtProperty *property, QWidget *parent)
 {
-    DecoratedEditor<Editor> *editor = new DecoratedEditor<Editor>(parent);
+    Editor *editor = new Editor(parent);
     initializeEditor(property, editor);
     return editor;
 }
 
 template <class Editor>
 void EditorFactoryPrivate<Editor>::initializeEditor(QtProperty *property,
-                                                    DecoratedEditor<Editor> *editor) {
+                                                    Editor *editor) {
     typename PropertyToEditorListMap::iterator it = m_createdEditors.find(property);
     if (it == m_createdEditors.end())
         it = m_createdEditors.insert(property, EditorList());
@@ -414,7 +383,7 @@ void QtSliderFactory::connectPropertyManager(QtIntPropertyManager *manager)
 QWidget *QtSliderFactory::createEditor(QtIntPropertyManager *manager, QtProperty *property,
         QWidget *parent)
 {
-    DecoratedEditor<QSlider> *editor = new DecoratedEditor<QSlider>(Qt::Horizontal, parent);
+    QSlider *editor = new QSlider(Qt::Horizontal, parent);
     d_ptr->initializeEditor(property, editor);
     editor->setSingleStep(manager->singleStep(property));
     editor->setRange(manager->minimum(property), manager->maximum(property));
@@ -566,7 +535,7 @@ void QtScrollBarFactory::connectPropertyManager(QtIntPropertyManager *manager)
 QWidget *QtScrollBarFactory::createEditor(QtIntPropertyManager *manager, QtProperty *property,
         QWidget *parent)
 {
-    DecoratedEditor<QScrollBar> *editor = new DecoratedEditor<QScrollBar>(Qt::Horizontal, parent);
+    QScrollBar *editor = new QScrollBar(Qt::Horizontal, parent);
     d_ptr->initializeEditor(property, editor);
     editor->setSingleStep(manager->singleStep(property));
     editor->setRange(manager->minimum(property), manager->maximum(property));
