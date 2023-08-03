@@ -27,6 +27,7 @@ public:
     QString m_name;
     bool m_enabled;
     bool m_modified;
+    bool m_readOnly;
 
     QtAbstractPropertyManager * const m_manager;
 };
@@ -219,6 +220,17 @@ QString QtProperty::propertyName() const
 }
 
 /*!
+    Returns whether the property is read-only.
+
+    \sa setEnabled()
+*/
+bool QtProperty::isReadOnly() const
+{
+    return d_ptr->m_readOnly;
+}
+
+
+/*!
     Returns whether the property is enabled.
 
     \sa setEnabled()
@@ -359,6 +371,20 @@ void QtProperty::setEnabled(bool enable)
         return;
 
     d_ptr->m_enabled = enable;
+    propertyChanged();
+}
+
+/*!
+    Sets the property's read-only state according to the passed \a state value.
+
+    \sa isEnabled()
+*/
+void QtProperty::setReadOnly(bool state)
+{
+    if (d_ptr->m_readOnly == state)
+        return;
+
+    d_ptr->m_readOnly = state;
     propertyChanged();
 }
 

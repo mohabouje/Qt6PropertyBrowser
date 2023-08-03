@@ -7,6 +7,7 @@
 #include <QtCore/QMap>
 #include <QtCore/QRegularExpression>
 #include <QtGui/QKeyEvent>
+#include <QtGui/QPainter>
 #include <QtGui/QRegularExpressionValidator>
 #include <QtWidgets/QAbstractItemView>
 #include <QtWidgets/QApplication>
@@ -29,6 +30,42 @@
 #endif
 
 QT_BEGIN_NAMESPACE
+
+// To enable read-only properties, this overlay widget is used to block mouse events from reaching the editor widget.
+class Overlay : public QWidget {
+public:
+    explicit Overlay(QWidget *parent = nullptr) : QWidget(parent) {
+        setAttribute(Qt::WA_NoSystemBackground);
+        setAttribute(Qt::WA_TransparentForMouseEvents);
+    }
+protected:
+    void paintEvent(QPaintEvent *) override {
+        QPainter(this).fillRect(rect(), {80, 80, 255, 128});
+    }
+};
+
+class OverlayFactoryFilter : public QObject {
+    QPointer<Overlay> m_overlay;
+public:
+    explicit OverlayFactoryFilter(QObject *parent = nullptr) : QObject(parent) {}
+protected:
+    bool eventFilter(QObject *obj, QEvent *ev) override {
+        if (!obj->isWidgetType()) return false;
+        auto w = static_cast<QWidget*>(obj);
+        if (ev->type() == QEvent::MouseButtonPress) {
+            if (!m_overlay) m_overlay = new Overlay;
+            m_overlay->setParent(w);
+            m_overlay->resize(w->size());
+            m_overlay->show();
+        }
+        else if (ev->type() == QEvent::Resize) {
+            if (m_overlay && m_overlay->parentWidget() == w)
+                m_overlay->resize(w->size());
+        }
+        return false;
+    }
+};
+
 
 // Set a hard coded left margin to account for the indentation
 // of the tree view icon when switching to an editor
@@ -60,12 +97,14 @@ public:
 
     PropertyToEditorListMap  m_createdEditors;
     EditorToPropertyMap m_editorToProperty;
+    OverlayFactoryFilter m_factory;
 };
 
 template <class Editor>
 Editor *EditorFactoryPrivate<Editor>::createEditor(QtProperty *property, QWidget *parent)
 {
     Editor *editor = new Editor(parent);
+    editor->installEventFilter(&m_factory);
     initializeEditor(property, editor);
     return editor;
 }
@@ -578,7 +617,7 @@ void QtCheckBoxFactoryPrivate::slotPropertyChanged(QtProperty *property, bool va
     for (QtBoolEdit *editor : it.value()) {
         editor->blockCheckBoxSignals(true);
         editor->setChecked(value);
-        editor->blockCheckBoxSignals(false);
+        editor->blockCheckBoxSignals(false); 
     }
 }
 
