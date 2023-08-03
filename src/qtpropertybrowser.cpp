@@ -1845,8 +1845,8 @@ QWidget *QtAbstractPropertyBrowser::createEditor(QtProperty *property,
     // to make them feel more native on Mac, we need to relax the focus policy to something
     // more permissive to keep the combo box from losing focus, allowing it to stay alive,
     // when the user clicks on it to show the popup.
-    // if (w)
-    //     w->setFocusPolicy(Qt::WheelFocus);
+    if (w)
+        w->setFocusPolicy(Qt::WheelFocus);
     return w;
 }
 

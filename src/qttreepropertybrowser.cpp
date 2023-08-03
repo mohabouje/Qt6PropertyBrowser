@@ -519,7 +519,7 @@ void QtTreePropertyBrowserPrivate::propertyInserted(QtBrowserItem *index, QtBrow
     m_itemToIndex[newItem] = index;
     m_indexToItem[index] = newItem;
 
-    newItem->setFlags(newItem->flags() | Qt::ItemIsEditable);
+    newItem->setFlags(index->property()->isReadOnly() ? (newItem->flags() & (~Qt::ItemIsEditable)) : (newItem->flags() | Qt::ItemIsEditable));
     newItem->setExpanded(true);
 
     updateItem(newItem);
@@ -568,6 +568,7 @@ void QtTreePropertyBrowserPrivate::updateItem(QTreeWidgetItem *item)
     item->setStatusTip(0, property->statusTip());
     item->setWhatsThis(0, property->whatsThis());
     item->setText(0, propertyName);
+    item->setFlags(property->isReadOnly() ? (item->flags() & (~Qt::ItemIsEditable)) : (item->flags() | Qt::ItemIsEditable));
     bool wasEnabled = item->flags() & Qt::ItemIsEnabled;
     bool isEnabled = wasEnabled;
     if (property->isEnabled()) {
