@@ -31,29 +31,28 @@
 
 QT_BEGIN_NAMESPACE
 
-class OverlayFactoryFilter : public QObject {
-public:
-    explicit OverlayFactoryFilter(QObject *parent = nullptr) : QObject(parent) {}
+template <class Editor>
+struct DecoratedEditor : public Editor {
 
-    void setReadOnly(bool readOnly) { m_readOnly = readOnly; }
+    template <typename... ArgsT>
+    explicit DecoratedEditor(ArgsT&&... args) : Editor(std::forward<ArgsT>(args)...) {}
+
+    bool isReadOnly() const { return m_readOnly; }
     
-protected:
-    bool eventFilter(QObject *obj, QEvent *ev) override {
-        if (not obj->isWidgetType()) {
-            return QObject::eventFilter(obj, ev);
-        }
-
-        auto *w = static_cast<QWidget *>(obj);
-        w->setAttribute(Qt::WA_TransparentForMouseEvents, m_readOnly);
-        w->setAttribute(Qt::WA_NoMouseReplay, m_readOnly);
-        w->setFocusPolicy(m_readOnly ? Qt::FocusPolicy::NoFocus : Qt::FocusPolicy::StrongFocus);
-        return QObject::eventFilter(obj, ev);
+    void setReadOnly(bool readOnly) {
+        if (m_readOnly == readOnly)
+            return;
+      
+        Editor::setAttribute(Qt::WA_TransparentForMouseEvents, readOnly);
+        Editor::setAttribute(Qt::WA_NoMouseReplay, readOnly);
+        Editor::setAttribute(Qt::WA_NoMouseReplay, readOnly);
+        Editor::setAttribute(Qt::WA_NoChildEventsForParent, readOnly);
+        Editor::setFocusPolicy(readOnly ? Qt::FocusPolicy::NoFocus : Qt::FocusPolicy::StrongFocus);
     }
 
-private:
+  private:
     bool m_readOnly{false};
 };
-
 
 // Set a hard coded left margin to account for the indentation
 // of the tree view icon when switching to an editor
@@ -75,33 +74,30 @@ class EditorFactoryPrivate
 {
 public:
 
-    typedef QList<Editor *> EditorList;
+    typedef QList<DecoratedEditor<Editor> *> EditorList;
     typedef QMap<QtProperty *, EditorList> PropertyToEditorListMap;
     typedef QMap<Editor *, QtProperty *> EditorToPropertyMap;
 
     Editor *createEditor(QtProperty *property, QWidget *parent);
-    void initializeEditor(QtProperty *property, Editor *e);
+    void initializeEditor(QtProperty *property, DecoratedEditor<Editor> *e);
     void slotEditorDestroyed(QObject *object);
 
     PropertyToEditorListMap  m_createdEditors;
     EditorToPropertyMap m_editorToProperty;
-    OverlayFactoryFilter m_factory;
 };
 
 template <class Editor>
 Editor *EditorFactoryPrivate<Editor>::createEditor(QtProperty *property, QWidget *parent)
 {
-    Editor *editor = new Editor(parent);
+    DecoratedEditor<Editor> *editor = new DecoratedEditor<Editor>(parent);
+    editor->setReadOnly(property->isReadOnly());
     initializeEditor(property, editor);
     return editor;
 }
 
 template <class Editor>
 void EditorFactoryPrivate<Editor>::initializeEditor(QtProperty *property,
-                                                    Editor *editor) {
-    OverlayFactoryFilter *filter = new OverlayFactoryFilter(editor);
-    filter->setReadOnly(property->isReadOnly());
-    editor->installEventFilter(filter);
+                                                    DecoratedEditor<Editor> *editor) {
     typename PropertyToEditorListMap::iterator it = m_createdEditors.find(property);
     if (it == m_createdEditors.end())
         it = m_createdEditors.insert(property, EditorList());
@@ -411,7 +407,7 @@ void QtSliderFactory::connectPropertyManager(QtIntPropertyManager *manager)
 QWidget *QtSliderFactory::createEditor(QtIntPropertyManager *manager, QtProperty *property,
         QWidget *parent)
 {
-    QSlider *editor = new QSlider(Qt::Horizontal, parent);
+    DecoratedEditor<QSlider> *editor = new DecoratedEditor<QSlider>(Qt::Horizontal, parent);
     d_ptr->initializeEditor(property, editor);
     editor->setSingleStep(manager->singleStep(property));
     editor->setRange(manager->minimum(property), manager->maximum(property));
@@ -563,7 +559,7 @@ void QtScrollBarFactory::connectPropertyManager(QtIntPropertyManager *manager)
 QWidget *QtScrollBarFactory::createEditor(QtIntPropertyManager *manager, QtProperty *property,
         QWidget *parent)
 {
-    QScrollBar *editor = new QScrollBar(Qt::Horizontal, parent);
+    DecoratedEditor<QScrollBar> *editor = new DecoratedEditor<QScrollBar>(Qt::Horizontal, parent);
     d_ptr->initializeEditor(property, editor);
     editor->setSingleStep(manager->singleStep(property));
     editor->setRange(manager->minimum(property), manager->maximum(property));
