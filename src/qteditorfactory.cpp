@@ -39,15 +39,15 @@ public:
     
 protected:
     bool eventFilter(QObject *obj, QEvent *ev) override {
-        if (not obj->isWidgetType() or not m_readOnly) {
+        if (not obj->isWidgetType()) {
             return QObject::eventFilter(obj, ev);
         }
 
-        auto* w = static_cast<QWidget *>(obj);
-        w->setFocusPolicy(Qt::FocusPolicy::NoFocus);
-        w->setAttribute(Qt::WA_TransparentForMouseEvents);
-        w->setAttribute(Qt::WA_NoMouseReplay);
-        return ev->type() == QEvent::KeyPress or ev->type() == QEvent::MouseButtonPress;
+        auto *w = static_cast<QWidget *>(obj);
+        w->setAttribute(Qt::WA_TransparentForMouseEvents, m_readOnly);
+        w->setAttribute(Qt::WA_NoMouseReplay, m_readOnly);
+        w->setFocusPolicy(m_readOnly ? Qt::FocusPolicy::NoFocus : Qt::FocusPolicy::StrongFocus);
+        return QObject::eventFilter(obj, ev);
     }
 
 private:
