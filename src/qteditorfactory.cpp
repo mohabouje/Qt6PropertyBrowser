@@ -31,19 +31,6 @@
 
 QT_BEGIN_NAMESPACE
 
-// To enable read-only properties, this overlay widget is used to block mouse events from reaching the editor widget.
-class Overlay : public QWidget {
-public:
-    explicit Overlay(QWidget *parent = nullptr) : QWidget(parent) {
-        setAttribute(Qt::WA_NoSystemBackground);
-        setAttribute(Qt::WA_TransparentForMouseEvents);
-    }
-protected:
-    void paintEvent(QPaintEvent *) override {
-        QPainter(this).fillRect(rect(), {80, 80, 255, 128});
-    }
-};
-
 class OverlayFactoryFilter : public QObject {
 public:
     explicit OverlayFactoryFilter(QObject *parent = nullptr) : QObject(parent) {}
@@ -56,10 +43,11 @@ protected:
         if (ev->type() == QEvent::MouseButtonPress or
             ev->type() == QEvent::MouseButtonDblClick or
             ev->type() == QEvent::MouseButtonRelease or
-            ev->type() == QEvent::MouseMove or
-            ev->type() == QEvent::KeyPress or
-            ev->type() == QEvent::KeyRelease or
-            ev->type() == QEvent::Wheel) {
+            ev->type() == QEvent::MouseMove or ev->type() == QEvent::KeyPress or
+            ev->type() == QEvent::KeyRelease or ev->type() == QEvent::FocusIn or
+            ev->type() == QEvent::FocusOut or ev->type() == QEvent::Enter or
+            ev->type() == QEvent::Leave or ev->type() == QEvent::FocusIn or
+            ev->type() == QEvent::FocusOut or ev->type() == QEvent::FocusAboutToChange) {
             return m_readOnly;
         }
         return false;
