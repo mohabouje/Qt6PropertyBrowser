@@ -212,7 +212,7 @@ public:
 private slots:
     void slotEditorDestroyed(QObject *object);
 
-private:
+public:
     int indentation(const QModelIndex &index) const;
 
     typedef QMap<QWidget *, QtProperty *> EditorToPropertyMap;
@@ -271,13 +271,6 @@ QWidget *QtPropertyEditorDelegate::createEditor(QWidget *parent,
         if (property && item && (item->flags() & Qt::ItemIsEnabled)) {
             QWidget *editor = m_editorPrivate->createEditor(property, parent);
             if (editor) {
-                // editor->setAttribute(Qt::WA_InputMethodEnabled, not property->isReadOnly());
-                // editor->setAttribute(Qt::WA_InputMethodTransparent, property->isReadOnly());
-                // editor->setAttribute(Qt::WA_TransparentForMouseEvents, property->isReadOnly());
-                // editor->setAttribute(Qt::WA_NoMousePropagation, property->isReadOnly());
-                // editor->setAttribute(Qt::WA_NoMouseReplay, property->isReadOnly());
-                // editor->setAttribute(Qt::WA_KeyboardFocusChange, not property->isReadOnly());
-                // editor->setFocusPolicy(property->isReadOnly() ? Qt::FocusPolicy::NoFocus : Qt::FocusPolicy::StrongFocus);
                 editor->setAutoFillBackground(true);
                 editor->installEventFilter(const_cast<QtPropertyEditorDelegate *>(this));
                 connect(editor, &QObject::destroyed,
@@ -557,6 +550,17 @@ void QtTreePropertyBrowserPrivate::propertyChanged(QtBrowserItem *index)
 void QtTreePropertyBrowserPrivate::updateItem(QTreeWidgetItem *item)
 {
     QtProperty *property = m_itemToIndex[item]->property();
+    QWidget *editor = m_delegate->m_propertyToEditor[property];
+    if (editor) {
+        editor->setAttribute(Qt::WA_InputMethodEnabled, not property->isReadOnly());
+        editor->setAttribute(Qt::WA_InputMethodTransparent, property->isReadOnly());
+        editor->setAttribute(Qt::WA_TransparentForMouseEvents, property->isReadOnly());
+        editor->setAttribute(Qt::WA_NoMousePropagation, property->isReadOnly());
+        editor->setAttribute(Qt::WA_NoMouseReplay, property->isReadOnly());
+        editor->setAttribute(Qt::WA_KeyboardFocusChange, not property->isReadOnly());
+        editor->setFocusPolicy(property->isReadOnly() ? Qt::FocusPolicy::NoFocus : Qt::FocusPolicy::StrongFocus);
+    }
+    
     QIcon expandIcon;
     if (property->hasValue()) {
         const QString valueToolTip = property->valueToolTip();
