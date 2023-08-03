@@ -39,7 +39,15 @@ public:
     
 protected:
     bool eventFilter(QObject *obj, QEvent *ev) override {
-        if (!obj->isWidgetType()) return false;
+        if (!obj->isWidgetType()) {
+            return false;
+        }
+
+        auto* w = static_cast<QWidget *>(obj);
+        if (m_readOnly) {
+          w->setFocusPolicy(Qt::FocusPolicy::NoFocus);
+        }
+
         if (ev->type() == QEvent::MouseButtonPress or
             ev->type() == QEvent::MouseButtonDblClick or
             ev->type() == QEvent::MouseButtonRelease or
@@ -47,7 +55,9 @@ protected:
             ev->type() == QEvent::KeyRelease or ev->type() == QEvent::FocusIn or
             ev->type() == QEvent::FocusOut or ev->type() == QEvent::Enter or
             ev->type() == QEvent::Leave or ev->type() == QEvent::FocusIn or
-            ev->type() == QEvent::FocusOut or ev->type() == QEvent::FocusAboutToChange) {
+            ev->type() == QEvent::FocusOut or
+            ev->type() == QEvent::FocusAboutToChange or
+            ev->type() == QEvent::Wheel) {
             return m_readOnly;
         }
         return false;
