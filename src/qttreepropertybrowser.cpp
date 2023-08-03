@@ -271,6 +271,13 @@ QWidget *QtPropertyEditorDelegate::createEditor(QWidget *parent,
         if (property && item && (item->flags() & Qt::ItemIsEnabled)) {
             QWidget *editor = m_editorPrivate->createEditor(property, parent);
             if (editor) {
+                editor->setAttribute(Qt::WA_InputMethodEnabled, not property->isReadOnly());
+                editor->setAttribute(Qt::WA_InputMethodTransparent, property->isReadOnly());
+                editor->setAttribute(Qt::WA_TransparentForMouseEvents, property->isReadOnly());
+                editor->setAttribute(Qt::WA_NoMousePropagation, property->isReadOnly());
+                editor->setAttribute(Qt::WA_NoMouseReplay, property->isReadOnly());
+                editor->setAttribute(Qt::WA_KeyboardFocusChange, not property->isReadOnly());
+                editor->setFocusPolicy(property->isReadOnly() ? Qt::FocusPolicy::NoFocus : Qt::FocusPolicy::StrongFocus);
                 editor->setAutoFillBackground(true);
                 editor->installEventFilter(const_cast<QtPropertyEditorDelegate *>(this));
                 connect(editor, &QObject::destroyed,

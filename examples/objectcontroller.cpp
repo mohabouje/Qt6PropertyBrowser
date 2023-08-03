@@ -186,7 +186,9 @@ void ObjectControllerPrivate::addClassProperties(const QMetaObject *metaObject)
     QtProperty *classProperty = m_classToProperty.value(metaObject);
     if (!classProperty) {
         QString className = QLatin1String(metaObject->className());
-        classProperty = m_manager->addProperty(QtVariantPropertyManager::groupTypeId(), className);
+        classProperty = m_manager->addProperty(
+            QtVariantPropertyManager::groupTypeId(), className);
+        classProperty->setReadOnly(true);
         m_classToProperty[metaObject] = classProperty;
         m_propertyToClass[classProperty] = metaObject;
 
@@ -240,6 +242,7 @@ void ObjectControllerPrivate::addClassProperties(const QMetaObject *metaObject)
                 subProperty->setValue(QLatin1String("< Unknown Type >"));
                 subProperty->setEnabled(false);
             }
+            subProperty->setReadOnly(true);
             classProperty->addSubProperty(subProperty);
             m_propertyToIndex[subProperty] = idx;
             m_classToIndexToProperty[metaObject][idx] = subProperty;
