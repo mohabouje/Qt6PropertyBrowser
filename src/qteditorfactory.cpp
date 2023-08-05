@@ -2530,8 +2530,8 @@ QtLabelEditWidget::QtLabelEditWidget(QWidget *parent) :
     setupTreeViewEditorMargin(lt);
     lt->setSpacing(0);
     lt->addWidget(m_label);
-    lt->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Ignored));
-
+    m_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+    m_label->setAlignment(Qt::AlignCenter);
     setFocusProxy(m_label);
     m_label->setText("Aa");
 }
