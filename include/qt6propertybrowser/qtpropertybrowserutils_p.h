@@ -70,9 +70,6 @@ class QtBoolEdit : public QWidget {
 public:
     QtBoolEdit(QWidget *parent = 0);
 
-    bool textVisible() const { return m_textVisible; }
-    void setTextVisible(bool textVisible);
-
     Qt::CheckState checkState() const;
     void setCheckState(Qt::CheckState state);
 

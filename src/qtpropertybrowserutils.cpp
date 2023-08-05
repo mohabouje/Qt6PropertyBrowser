@@ -218,8 +218,7 @@ QString QtPropertyBrowserUtils::dateTimeFormat()
 
 QtBoolEdit::QtBoolEdit(QWidget *parent) :
     QWidget(parent),
-    m_checkBox(new QCheckBox(this)),
-    m_textVisible(true)
+    m_checkBox(new QCheckBox(this))
 {
     QHBoxLayout *lt = new QHBoxLayout;
     if (QApplication::layoutDirection() == Qt::LeftToRight)
@@ -230,20 +229,8 @@ QtBoolEdit::QtBoolEdit(QWidget *parent) :
     setLayout(lt);
     connect(m_checkBox, &QAbstractButton::toggled, this, &QtBoolEdit::toggled);
     setFocusProxy(m_checkBox);
-    m_checkBox->setText(tr("True"));
 }
 
-void QtBoolEdit::setTextVisible(bool textVisible)
-{
-    if (m_textVisible == textVisible)
-        return;
-
-    m_textVisible = textVisible;
-    if (m_textVisible)
-        m_checkBox->setText(isChecked() ? tr("True") : tr("False"));
-    else
-        m_checkBox->setText(QString());
-}
 
 Qt::CheckState QtBoolEdit::checkState() const
 {
@@ -263,9 +250,6 @@ bool QtBoolEdit::isChecked() const
 void QtBoolEdit::setChecked(bool c)
 {
     m_checkBox->setChecked(c);
-    if (!m_textVisible)
-        return;
-    m_checkBox->setText(isChecked() ? tr("True") : tr("False"));
 }
 
 bool QtBoolEdit::blockCheckBoxSignals(bool block)
